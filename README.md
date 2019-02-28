@@ -6,3 +6,4 @@
 后期将改为分布式（自己的毕设）
 client是前端 tomcat跑起来就行
 onlinechese后端
+测试地址 http://www.freenovel.xyz:8080/Client/login.html
