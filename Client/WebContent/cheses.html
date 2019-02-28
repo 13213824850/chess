@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>中国象棋</title>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script src="constant/constant.js"></script>
+
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+	crossorigin="anonymous">
+
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script
+	src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+	crossorigin="anonymous"></script>
+	<script type="text/javascript" src = "js/jquery.cookie.js"></script>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!-- <meta name="viewport"
+	content="width=100%; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" />
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0" /> -->
+<body>
+	<div id="content" class="container">
+		<div class="row">
+		<!-- <div class="col-sm-1" style="margin-top: 20px;">
+		</div> -->
+
+		<div class="col-sm-8">
+				<canvas id="canvas"></canvas>
+		</div>
+				
+			<div class="col-sm-offset-1 col-sm-2" style="margin-top: 20px;">
+				<div class="row">
+					<div class="row">
+					<h1>对局状态</h1>
+					</div>
+					<div class="row">
+						<h3 style="text-align: center;" >
+						<strong id="moveChese">红方执棋</strong>
+						</h3>
+					</div>
+				</div>
+				<div class="row">
+				<h3 id="openScreen" ><button onclick="launchFullScreen(document.documentElement);">启动全屏</button> </h3>
+				<h3 hidden="true" id="stopScreen"><button onclick="exitFullscreen();">退出全屏</button> </h3>
+				</div>
+
+				<div class="row">
+					<div class="otherinfo">
+					<h4>对手信息:</h4>
+					<div style="font-size: 20px;">
+					<span class="glyphicon glyphicon-user btn btn-lg" id="nickName"></span>
+					<span id="launchFriend" class="glyphicon glyphicon-plus btn btn-lg" onclick="launchFriend()"></span>
+					<br>
+					<span id="duanwei">段位：</span><br>
+					<span id="gameCount">场次：</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="winRate">胜率：</span>
+					
+					</div>
+					</div>
+				</div>
+
+				<div class="row" style="margin-top: 30px;">
+					<div class="row">
+					<h3>聊天室</h3>
+					<div id="friendLaunch" hidden="hidden"  >
+						<h3><span  id="textLauchnickName" style="background-color: #00FF90">
+						</span>
+						<span class="glyphicon glyphicon-ok" id="agree" onclick="updateFriendLaunch(1)"></span>
+						<span class="glyphicon glyphicon-remove" id="ignore" onclick="updateFriendLaunch(2)"></span>
+						<span  id="messageTime"></span>
+						</h3>
+						
+					</div>
+					</div>
+					<div class="row">
+						<div>
+							<input type="text" id="textMessage" />
+							<button  >发送</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+	
+	
+    //车马相士将士相马车 8*11
+    var body_w=document.body.clientWidth;
+    var gameType=0;
+    body_w=body_w%9==0?body_w:body_w-body_w%9;//让坐标为整数
+    body_w=body_w<810?body_w:810;
+    console.log(document.body.clientWidth+"|"+body_w);
+   
+    var w=body_w/9*8,h=w/8*9;
+   // var c=document.createElement('canvas');
+    var c = document.getElementById('canvas');
+    var wh=w/2;    var hh=h/2;    var cell=w/8;    var cellh=cell/2;
+    c.width=w+cell;    c.height=h+cell;    c.id="can";
+    //b.appendChild(c);
+    var cxt=c.getContext("2d");
+    cxt.strokeStyle="#ff0000";
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    //字体颜色
+    var cheseColor = 0 //0红方 1黑 动态取值
+    var turnMe = false;//是否到我下棋
+    var fontColor = w/16+"px Arial";
+    cxt.font= fontColor;
+    var weight = w;
+    var height = w;
+    var wc = weight/8;
+    var hc = height/9;
+    var qi = ["","将","車","马","象","士","炮","兵"];
+    
+    var  cheses = [
+		[2,0,0,7,0,0,-7,0,0,-2],
+		[3,0,6,0,0,0,0,-6,0,-3],
+		[4,0,0,7,0,0,-7,0,0,-4],
+		[5,0,0,0,0,0,0,0,0,-5],
+		[1,0,0,7,0,0,-7,0,0,-1],
+		[5,0,0,0,0,0,0,0,0,-5],
+		[4,0,0,7,0,0,-7,0,0,-4],
+		[3,0,6,0,0,0,0,-6,0,-3],
+		[2,0,0,7,0,0,-7,0,0,-2]
+];
+    initWG();
+    
+	function initWG(){
+	    var weight = w;
+	    var height = w;
+	    var wc = weight/8;
+	    var hc = height/9;
+	    cxt.strokeStyle = "#ff0000";
+		cxt.lineWidth = 1;
+	    cxt.translate(cell/2,cell/2);
+	    //画横线
+	    for(var i = 0; i<=9; i++){
+	    	cxt.moveTo(0,hc*i);
+	        cxt.lineTo(weight,hc*i);
+	    }
+	    //竖线
+	      for(var i = 0; i<=9; i++){
+	    	cxt.moveTo(wc*i,0);
+	        cxt.lineTo(wc*i,hc*4);
+	    	cxt.moveTo(wc*i,hc*5);
+	        cxt.lineTo(wc*i,height);
+	    }
+	    //田哥
+	    cxt.moveTo(wc*3,0);
+	    cxt.lineTo(wc*5,hc*2);
+	    cxt.moveTo(wc*5,0);
+	    cxt.lineTo(wc*3,hc*2);
+	    
+	    cxt.moveTo(wc*3,hc*7);
+	    cxt.lineTo(wc*5,hc*9);
+	    cxt.moveTo(wc*5,hc*7);
+	    cxt.lineTo(wc*3,hc*9);
+	    cxt.stroke();
+	    
+	    //跑位置
+	    cxt.beginPath();
+	    cxt.arc(wc,2*hc,hc/4,50,0,2*Math.PI,true);
+	    cxt.stroke();
+	    cxt.beginPath();
+	    cxt.arc(wc*7,2*hc,hc/4,50,0,2*Math.PI,true);
+	    cxt.stroke();
+	    cxt.beginPath();
+	    cxt.arc(wc,7*hc,hc/4,50,0,2*Math.PI,true);
+	    cxt.stroke();
+	    cxt.beginPath();
+	    cxt.arc(wc*7,7*hc,hc/4,50,0,2*Math.PI,true);
+	    cxt.stroke();
+	    
+	    cxt.font =w/64+"px Arial";
+	    cxt.beginPath();
+        cxt.fillText('楚河',wc*2,5*hc-hc/3);
+        cxt.fillText('汉界',5*wc,5*hc-hc/3);
+        cxt.closePath();
+    
+	    //兵位置
+	    /* for(int i = 0; i < 5; i++){
+	    	 cxt.beginPath();
+	 	    cxt.arc(wc,2*hc,hc/4,50,0,2*Math.PI,true);
+	 	    cxt.stroke();
+	    } */
+	    //初始化棋子
+	   //initChese(cheses);
+	    
+	}
+	
+	function initChese(arr){
+		cxt.font =w/16+"px Arial";
+		cxt.translate(-wc/4,0);
+		for(var i = 0; i< 10; i++){
+			for(var j = 0; j<9; j++){
+				var code = arr[j][i];
+				createChese(code,i,j);
+			}
+		}
+	}
+	
+	function createChese(code,i,j){
+		if(cheseColor == 0){
+			i = 9 - i;
+		}
+		if(code > 0){
+			cxt.fillStyle= "#F70909";
+		}else{
+			code = -code;
+			cxt.fillStyle = "#100101";
+		}
+		cxt.fillText(qi[code],wc*j,hc/4+hc*i);
+	}
+	
+	//封装发送消息
+	 var cheseIndex = new Array();
+	 var ischeseUp = false;
+	 c.onclick=function(event){
+		 if(turnMe){
+			 var x = event.clientX - c.getBoundingClientRect().left;
+			 var y = event.clientY - c.getBoundingClientRect().top;
+			 console.log(wc,hc);
+			 console.log(x,+''+y);
+			
+			 //取值x坐标
+			 x = Math.ceil(x/wc) - 1;
+			 y = Math.ceil(y/hc) - 1;
+			 console.log(x,+''+y);
+			console.log(ischeseUp);
+			 if(ischeseUp){
+				 cheseDown(x,y);
+			 }else{
+				 cheseUp(x,y);
+			 }
+		 }
+		
+	 }
+	 
+	 
+	 
+	 function cheseDown(x,y){
+		 console.log("cheseDon start");
+		 y = changeIndex(y);
+		 //判断落子有没有己方棋子
+		 if((cheses[x][y] == 0) || (cheses[x][y] < 0 && cheseColor == 0) || (cheses[x][y] > 0 && cheseColor == 1)){
+			 cheseIndex[3] = x;
+			 cheseIndex[4] = y;
+			 cheseIndex[5] = cheses[cheseIndex[1]][cheseIndex[2]];
+			 //禁止再次下棋
+			 turnMe = false;
+			 ischeseUp = false;
+			 //发送数据
+			 var data = {
+					 messageCode : cheseIndex[0],
+					 startX : cheseIndex[1],
+					 startY : cheseIndex[2],
+					 endX : cheseIndex[3],
+					 endY : cheseIndex[4],
+					 code : cheseIndex[5],
+			 }
+			 sendMessage(data);
+			 //cheseIndex = null;
+			// console.log(cheseIndex);
+		 }
+	 }
+	 
+	 
+	 //判断红色方是不是在下面是的话 转换下标
+	 function changeIndex(e){
+		 if(cheseColor == 0){
+				//转换下标
+				return 9 - e; 
+			}
+		 return e;
+	 }
+	 
+	//获取选中的是否有值和是不是自己的棋子 test红色
+	 function cheseUp(x,y){
+		 console.log("cheseUp start");
+		 
+		 y = changeIndex(y);
+		 console.log('点击的棋子',x+':'+y+''+cheses[x][y]);
+		 if((cheses[x][y] > 0 && cheseColor == 0) || 
+				 cheses[x][y] < 0 && cheseColor == 1){
+			 cheseIndex[0] = 102;
+			 cheseIndex[1] = x;
+			 cheseIndex[2] = y;
+			 ischeseUp = true;
+		 }
+	 }
+	
+	//移动棋子
+	function moveChese(e){
+		//更新数组
+		cheses[e.startX][e.startY] = 0;
+		cheses[e.endX][e.endY] = e.code;
+		//移动棋子
+		var y= e.startY;
+		var endy = e.endY;
+		if(cheseColor == 0){
+			y = 9- y;
+			endy = 9 - endy;
+		}
+		cxt.translate(0,0);
+		//清以前的棋子
+		cxt.clearRect(e.startX*wc,y*hc-hc/2,wc/2,hc);
+		
+		//判断起始点是不是在x=0,9,4,5 y=0,8
+		//画横线起始点
+		var x1 = e.startX*wc;
+		var x2 = e.startX*wc + wc/2;
+		if(e.startX == 0){
+			x1 = x1 + wc/4;
+		}else if(e.startX == 8){
+			x2= x2 - wc/4;
+		}
+		//竖线优化
+		var y1 = y*hc-hc/2;
+		var y2 = y*hc+hc/2;
+		if(y==0 || y==5){
+			y1 = y1 + hc/2;
+		}else if(y==9 || y == 4){
+			y2 = y2 - hc/2;
+		}
+		//若落棋有子则删除
+		if(cheses[e.startX][y] != 0){
+		cxt.clearRect(e.endX*wc,endy*hc-hc/2,wc/2,hc);
+		}
+		cxt.moveTo(x1,y*hc);
+		cxt.lineTo(x2,y*hc)
+		cxt.moveTo(e.startX*wc+wc/4,y1);
+		cxt.lineTo(e.startX*wc+wc/4,y2);
+		cxt.stroke(); 
+		createChese(e.code,e.endY,e.endX);
+	}
+	
+	function jsonToArr(data)//用户将json数组对象解析成二维数组
+	{
+	    var arr = [];
+	    for(var i in data)
+	    {
+	        arr[i] = [];
+	        for(var j in data[i])
+	        {
+	            arr[i].push(data[i][j]);
+	        }
+	    }
+	    return arr;
+	} 
+	
+	
+	
+	//建立连接
+		 var ws = null;
+			if ("WebSocket" in window) {
+				// 打开一个 web socket
+				ws = new WebSocket("ws://120.78.94.125:8081/game/"+$.cookie('usercookie'));
+			} else {
+				// 浏览器不支持 WebSocket
+				alert("您的浏览器不支持 WebSocket!");
+			}
+
+			ws.onopen = function() {
+				// Web Socket 已连接上，使用 send() 方法发送数据
+				// ws.send("发送数据");
+				//获取好友列表信息
+				// initChese(cheses);
+
+			};
+
+			ws.onmessage = function(evt) {
+				var received_msg = evt.data;
+				console.log(received_msg);
+				received_msg = JSON.parse(received_msg);
+				var messageCode = received_msg.messageCode
+				console.log(received_msg);
+				if (messageCode == 102) {
+					//棋子移动
+					moveChese(received_msg);
+					console.log(received_msg);
+				}else if(messageCode == 103){
+					alert(received_msg.message);
+				}else if(messageCode == 200){
+					//本用户是哪方0红 1黑
+					cheseColor = received_msg.map.checkerBoardInfo.code;
+					//将服务端的棋盘数据显示出来
+					cheses = jsonToArr(received_msg.map.cheses);
+					initChese(cheses);
+					//初始化对方信息
+					initUserNick(received_msg.map.checkerBoardInfo.oppUserName);
+					initOtherUserInfo(received_msg.map.checkerBoardInfo.oppUserName);
+					console.log(turnMe+'是否轮到我'+(!received_msg.turnMe && cheseColor == 1));
+				}else if(messageCode == 502){
+					//显示添加好友请求
+					var launchUser = received_msg.map.launchUser;
+					showAddFriendMessage(launchUser);
+				}
+				//更改哪方下棋
+				changeTurnMe(received_msg);
+				//判断游戏状态
+				    var showGameIngColor;
+				    var showGameIngMessage;
+				 	if(received_msg.gameState == 401){
+				 		showGameIngMessage = "红方胜利";
+					}else if(received_msg.gameState==402){
+				 		showGameIngMessage = "黑方胜利";
+					}else if(received_msg.gameState == 403){
+						if(received_msg.code > 0){
+							showGameIngMessage = "红方将军";
+						}else if(received_msg.code < 0){
+							showGameIngMessage = "黑方将军";
+						}
+					}
+				if(received_msg.gameState != 400 ){
+					$('#moveChese').text(showGameIngMessage);
+					$('#moveChese').css('color','red');
+				}
+				
+			};
+
+			ws.onclose = function() {
+				// 关闭 websocket
+				alert("与服务器断开连接");
+			};
+
+			function sendMessage(e) {
+				e = JSON.stringify(e);
+				ws.send(e);
+			} 
+			
+			function changeTurnMe(received_msg){
+				if((received_msg.turnMe && cheseColor == 0)||
+						(!received_msg.turnMe && cheseColor == 1) ){
+					turnMe = true;
+				}
+				//更改执棋状态
+				if(received_msg.turnMe){
+					$('#moveChese').text('红方执棋');
+					$('#moveChese').css('color','red');
+				}else{
+					$('#moveChese').text('黑方执棋');
+					$('#moveChese').css('color','#210101');
+				}
+			}
+			
+			//初始化对方信息
+			function initOtherUserInfo(userName){
+				 $.ajax({
+					url:getRankInfo_url+userName,
+					type:'GET',
+					success:function(e){
+						if(e.code==200){
+							var rank = e.data.rank;
+							var winRate = rank.winCount / (rank.transportCount + rank.winCount);
+							winRate = winRate*100 + "%";
+							if(rank.transportCount + rank.winCount == 0){
+								winRate = "0%";
+							}
+							var duanwei = "";
+							var rankGrade = rank.rankGrade;
+							var rankGradeStage = rank.rankGradeStage;
+							var star = rank.star;
+							  if(rankGrade == 1){
+									duanwei = "青铜";
+								}else if(rankGrade == 3){
+									duanwei = "白银";
+								}else if(rankGrade == 4){
+									duanwei = "黄金";
+								}else if(rankGrade == 5){
+									duanwei = "铂金";
+								}else if(rankGrade == 6){
+									duanwei = "钻石";
+								}else if(rankGrade == 7){
+									duanwei = "大师";
+								}else if(rankGrade == 8){
+									duanwei = "最强王者";
+								}else{
+									duanwei = "暂无段位";
+								}
+							  duanwei = duanwei + rankGradeStage;
+							$('#winRate').append(winRate);
+							$('#gameCount').append(rank.transportCount + rank.winCount);
+							$('#duanwei').append(duanwei);
+							for(var i = 0; i < star; i++){
+								$('<span ></span>').addClass('glyphicon glyphicon-star ').appendTo('#duanwei');
+							}
+							
+						}else{
+							//获取信息失败
+							alert(e.code);
+						}
+					}
+				}); 
+			}
+			
+			var oppUserName;
+			//获取对方信息
+			function initUserNick(userName){
+				$.ajax({
+					url:getUserInfo_url+userName,
+					type:'GET',
+					success:function(e){
+						if(e.code==200){
+							var userinfo = e.data.userInfo;
+							oppUserName = userinfo.userName;
+							$('#nickName').text(userinfo.nickName);
+							color = "#F34C79";
+							if(userinfo.sex == 0){
+								color = "#161609";
+							}
+							$('#nickName').css('color',color);
+						}else{
+							alert(e.code);
+						}
+					}
+				});
+			}
+			//显示好友请求
+			var launchNickName;
+			var launchUserName;
+			function showAddFriendMessage(launchUser){
+			 	launchNickName = launchUser.nickName;
+				launchUserName = launchUser.userName;
+				$('#textLauchnickName').text(launchNickName + "请求添加你为好友");
+				$('#friendLaunch').removeAttr('hidden');
+				setInterval("showMessageTime()", 1000);
+			}
+			var count = 10;
+			function showMessageTime(){
+				count--
+				$('#messageTime').text(count+'秒');
+				if(count == 0){
+					$('#friendLaunch').prop('hidden','hidden');
+					clearInterval();
+				}
+				
+			}
+			function launchFriend(){
+				 //发送数据
+				 if(confirm("确定添加"+oppUserName+"为好友")){
+				 var data = {
+						 messageCode : 501,
+				 }
+				 sendMessage(data);
+				 }
+			}
+			
+			//好友请求处理
+			function updateFriendLaunch(state){
+				$.ajax({
+					url:updateFriendLaunch_url+"/"+launchUserName+'/'+state+'/'+$.cookie('usercookie'),
+					type:'POST',
+					success:function(e){
+						$('#friendLaunch').prop('hidden','hidden');
+						if(e.code==200){
+							alert("添加成功")
+						}else{
+							alert(e.data.message);
+						}
+					}
+				});
+			}
+			//开启全屏模式
+		    function launchFullScreen(element) {
+
+		        if (element.requestFullscreen) {
+
+		          element.requestFullscreen();
+
+		        } else if (element.mozRequestFullScreen) {
+
+		          element.mozRequestFullScreen();
+
+		        } else if (element.webkitRequestFullscreen) {
+
+		          element.webkitRequestFullscreen();
+
+		        } else if (element.msRequestFullscreen) {
+
+		          element.msRequestFullscreen();
+
+		        }
+		        //隐藏按钮
+		        $('#openScreen').prop('hidden',true);
+		        $('#stopScreen').prop('hidden',false);
+
+		       }
+			//退出全屏
+		    function exitFullscreen() {
+		    	//隐藏按钮
+		        $('#stopScreen').prop('hidden',true);
+		        $('#openScreen').prop('hidden',false);
+		        if (document.exitFullscreen) {
+
+		          document.exitFullscreen();
+
+		        } else if (document.mozCancelFullScreen) {
+
+		          document.mozCancelFullScreen();
+
+		        } else if (document.webkitExitFullscreen) {
+
+		          document.webkitExitFullscreen();
+
+		       }
+		      
+			}
+</script>
+	﻿
+</body>
+</html>
