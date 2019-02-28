@@ -1,0 +1,10 @@
+var path = "http://localhost:8081";
+var index_url = "/Client/index.html";
+var getUser_url = path + "/user/getUser";
+var loginUrl = 'http://localhost:8081/user/login';
+var register_url = 'http://localhost:8081/user/register';
+var ws = "ws://localhost:8081/websocket/1";
+var chese_url = "/Client/cheses.html";
+var getRankInfo_url = "http://localhost:8081/rank/getRank/";
+var getUserInfo_url = path + "/user/getUserInfo/";
+var updateFriendLaunch_url = path + "/friendLaunchMessage/updateFriendLaunch/";

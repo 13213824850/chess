@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>首页</title>
+<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+	crossorigin="anonymous">
+
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script
+	src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+	crossorigin="anonymous"></script>
+<script type="text/javascript" src="constant/constant.js"></script>
+<script type="text/javascript" src="js/jquery.cookie.js"></script>
+<style type="text/css">
+.opst {
+	border: 10px red;
+}
+</style>
+</head>
+<body>
+
+	<div class="container" style="border: 10px solid #FFF68F;">
+		<div class="row">
+			<div class="col-xs-12">
+				<p style="font-size: 30px; text-align: center;">中国象棋在线对战</p>
+			</div>
+		</div>
+		<!-- 棋盘 -->
+		<div id="chesediv" class="row" hidden="hidden">
+			<canvas id="chese" class=" col-xs-12"></canvas>
+		</div>
+		<!-- 第一行 -->
+		<div id="middcontent">
+			<div class="row">
+				<div class="col-xs-offset-2 col-xs-2">
+					<button class="btn btn-primary btn-lg" id="startGame">开始对局</button>
+				</div>
+				<div class="col-xs-offset-2 col-xs-2" hidden="hidden">
+					<button class="btn btn-info btn-lg" id="inGame">
+						<p>
+							已匹配<a id="htime"></a>秒 &nbsp;<span
+								class="glyphicon glyphicon-remove "></span>
+						</p>
+					</button>
+				</div>
+
+				<div class="col-xs-offset-6 col-xs-2">
+						<span class="glyphicon glyphicon-user btn btn-lg" id="usersex"></span>
+						<span id="nickName">test</span><br>
+						<span id="duanwei">段位：</span><br>
+					<span id="gameCount">场次：</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="winRate">胜率：</span>
+					
+				</div>
+			</div>
+			<hr style="color: red;">
+			<div class="row">
+				<div class="col-xs-8">对局列表</div>
+				<div class="col-xs-4">
+					<div class="panel panel-default">
+						<div class="panel-body">好友列表</div>
+						<div id="frienList"></div>
+					</div>
+					<!-- 好友添加信息 -->
+					<div id="friendLaunch" hidden="hidden">
+						<h3>
+							<span id="textLauchnickName" style="background-color: #00FF90">
+							</span> <span class="glyphicon glyphicon-ok" id="agree"
+								onclick="updateFriendLaunch(1)"></span> <span
+								class="glyphicon glyphicon-remove" id="ignore"
+								onclick="updateFriendLaunch(2)"></span> <span id="messageTime"></span>
+						</h3>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+
+	<!-- 新建对局模态框 -->
+	<!-- Modal -->
+	<div class="modal fade" tabindex="-1" role="dialog" id="GameOp"
+		aria-labelledby="gridSystemModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="gridSystemModalLabel">对局选择</h4>
+				</div>
+				<div class="modal-body">
+					<div class="opst" style="align-content: center;" id="pipei">
+						<img src="iimage/1.png" onclick="matchGame('101')"></img
+					</div>
+					<br> <br>
+					<div class="opst" style="align-content: center;" id="pws">
+						<img src="iimage/2.png" onclick="matchGame('103')"></img
+					</div>
+					<br> <br>
+					<div class="opst" style="align-content: center;" id="friendz">
+						<img src="iimage/3.png"></img
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">放弃</button>
+					<button type="button" class="btn btn-primary"></button>
+				</div>
+			</div>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+
+
+
+
+	<script>
+		//显示对局选择
+		$('#startGame').click(function() {
+			$('#GameOp').modal('show');
+		})
+		var userName;
+		initUserInfo();
+		function initUserInfo() {
+			$.ajax({
+				url : getUser_url + '/' + $.cookie('usercookie'),
+				type : 'GET',
+				success : function(e) {
+					if (e.code == 200) {
+						var user = e.data.user;
+						userName = user.userName;
+						$('#usersex').css('color',
+								user.sex == 0 ? '$#161609' : '#F34C79');
+						$('#nickName').text(user.nickName);
+						getRankInfo();
+					} else {
+						alert(e.code);
+					}
+				}
+			});
+		}
+		function getRankInfo() {
+			$.ajax({
+				url : getRankInfo_url + '/' + userName,
+				type : 'GET',
+				success : function(e) {
+					if (e.code == 200) {
+						var rank = e.data.rank;
+						var winRate = rank.winCount / (rank.transportCount + rank.winCount);
+						winRate = winRate*100 + "%";
+						if(rank.transportCount + rank.winCount == 0){
+							winRate = "0%";
+						}
+						var duanwei = "";
+						var rankGrade = rank.rankGrade;
+						var rankGradeStage = rank.rankGradeStage;
+						var star = rank.star;
+						  if(rankGrade == 1){
+								duanwei = "青铜";
+							}else if(rankGrade == 3){
+								duanwei = "白银";
+							}else if(rankGrade == 4){
+								duanwei = "黄金";
+							}else if(rankGrade == 5){
+								duanwei = "铂金";
+							}else if(rankGrade == 6){
+								duanwei = "钻石";
+							}else if(rankGrade == 7){
+								duanwei = "大师";
+							}else if(rankGrade == 8){
+								duanwei = "最强王者";
+							}else{
+								duanwei = "暂无段位";
+							}
+						  duanwei = duanwei + rankGradeStage;
+						$('#winRate').append(winRate);
+						$('#gameCount').append(rank.transportCount + rank.winCount);
+						$('#duanwei').append(duanwei);
+						for(var i = 0; i < star; i++){
+							$('<span ></span>').addClass('glyphicon glyphicon-star ').appendTo('#duanwei');
+						}
+						
+						
+					} else {
+						alert(e.code);
+					}
+				}
+			});
+		}
+	</script>
+
+
+	<script>
+		var count = 0;
+		function showTime() {
+			count = count + 1;
+			$('#htime').text(count);
+		}
+		//匹配对局 排位赛
+		function matchGame(matchType) {
+			console.log(matchType);
+			$('#GameOp').modal('hide');
+			var data = {
+				messageCode : matchType,
+			};
+			//隐藏button
+			$('#startGame').parent().attr("hidden", 'hidden');
+			$('#inGame').parent().removeAttr('hidden');
+			//即时开始
+			setInterval("showTime()", 1000);
+			sendMessage(data);
+		}
+
+		//好友约战
+		$('#friendz').click(function() {
+
+		});
+		var ws = null;
+		if ("WebSocket" in window) {
+			// 打开一个 web socket
+			ws = new WebSocket("ws://localhost:8081/websocket/"
+					+ $.cookie('usercookie'));
+		} else {
+			// 浏览器不支持 WebSocket
+			alert("您的浏览器不支持 WebSocket!");
+		}
+
+		ws.onopen = function() {
+			// Web Socket 已连接上，使用 send() 方法发送数据
+			// ws.send("发送数据");
+			//获取好友列表信息
+
+		};
+
+		ws.onmessage = function(evt) {
+			var received_msg = evt.data;
+			console.log(received_msg);
+			received_msg = JSON.parse(received_msg);
+			var messageCode = received_msg.messageCode;
+			if (messageCode == 200) {
+				//匹配成功 棋盘初始化
+				window.open(chese_url, '_self');
+			} else if (messageCode == 503) {
+				//显示好友列表
+				showFriends(received_msg.map.showFriends);
+			}
+		};
+
+		ws.onclose = function() {
+			// 关闭 websocket
+			alert("连接已关闭...");
+		};
+
+		function sendMessage(e) {
+			e = JSON.stringify(e)
+			ws.send(e);
+		}
+
+		//好友请求处理
+		function updateFriendLaunch(state) {
+			$.ajax({
+				url : updateFriendLaunch_url + "/" + launchUserName + '/'
+						+ state + '/' + $.cookie('usercookie'),
+				type : 'POST',
+				success : function(e) {
+					$('#friendLaunch').prop('hidden', 'hidden');
+					if (e.code == 200) {
+						alert("添加成功")
+					} else {
+						alert(e.data.message);
+					}
+				}
+			});
+		}
+		//显示好友列表
+		function showFriends(friends) {
+			$
+					.each(friends,
+							function(index, friend) {
+								var div = $('<div></div>').addClass(
+										'panel-footer');
+								//性别
+								var color = friend.sex == 0 ? '#161609'
+										: '#F34C79';
+								var spanNickName = $('<span></span>').addClass(
+										'glyphicon glyphicon-user').css(
+										'color', color);
+								var nickName = $('<span></span>').append(
+										friend.friendNickName);
+								var state = friend.state;
+								var stateText;
+								if (state == 0) {
+									stateText = friend.lastLoginTime;
+								} else if (state == 1) {
+									stateText = '在线';
+								} else if (state == 2) {
+									stateText = '游戏中';
+								}
+								var stateSpan = $('<span></span>').append(
+										stateText + '&nbsp;&nbsp;&nbsp;').css(
+										'float', 'right');
+								div.append(spanNickName).append(nickName)
+										.append(stateSpan).appendTo(
+												'#frienList');
+								console.log('show');
+							});
+		}
+	</script>
+</body>
+</html>
