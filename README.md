@@ -7,3 +7,4 @@
 client是前端 tomcat跑起来就行
 onlinechese后端
 测试地址 http://www.freenovel.xyz:8080/Client/login.html
+接口文档使用swagger http://www.freenovel.xyz:8081/swagger-ui.html

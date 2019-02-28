@@ -12,8 +12,8 @@ spring:
     druid:
       filters: stat
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://127.0.0.1:3306/chese?serverTimezone=GMT&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
-      username: root
+      url: jdbc:mysql://120.78.94.125:3306/chese?serverTimezone=GMT&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=true
+      username: chese
       password: 1234
       initial-size: 1
       min-idle: 1
@@ -36,7 +36,7 @@ pagehelper:
   support-methods-arguments: true
   reasonable: true
   params: count=countSql
-logging:
-  level:
-    root: debug
+#logging:
+# level:
+#   root: debug
 

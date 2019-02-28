@@ -22,7 +22,7 @@ import com.onlinechese.vo.CheseIndex;
 import com.onlinechese.vo.PlayInfo;
 
 public class TestCheses {
-	int [][]cheses;
+	/*int [][]cheses;
 	public static int[] a= {1,2,3};
 	@Before
 	public void init() {
@@ -86,6 +86,6 @@ public class TestCheses {
 		map.put(3, 33);
 		map.put(1, 11);
 		map.put(2, 22);
-	}
+	}*/
 	
 }
