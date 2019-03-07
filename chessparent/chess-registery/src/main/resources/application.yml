@@ -1,0 +1,13 @@
+server:
+  port: 7001
+spring:
+  application:
+    name: chese-registery
+eureka:
+  instance:
+    hostname: localhost
+  client: 
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka
+    register-with-eureka: false  #不向自己注册
+    fetch-registry: false #不拉取服务
